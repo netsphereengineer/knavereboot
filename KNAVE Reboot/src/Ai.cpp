@@ -156,7 +156,7 @@ Actor *PlayerAi::choseFromInventory(Actor *owner) {
 	}
 	return NULL;
 }
-
+//test
 void MonsterAi::update(Actor *owner) {
 	if (owner->destructible && owner->destructible->isDead()) {
 		return;
