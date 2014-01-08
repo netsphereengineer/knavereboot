@@ -116,6 +116,7 @@ void Engine::load() {
 }
 
 void Engine::init() {
+	engine.level = 1;
 	player = new Actor(40, 25, '@', "player", TCODColor::white);
 	player->destructible = new PlayerDestructible(30, 2, "your cadaver");
 	player->attacker = new Attacker(5);
@@ -225,9 +226,6 @@ void Engine::render() {
 	}
 	player->render();
 	gui->render();
-	// show the player's stats
-	TCODConsole::root->print(1, screenHeight - 2, "HP : %d/%d",
-		(int)player->destructible->hp, (int)player->destructible->maxHp);
 }
 
 void Engine::sendToBack(Actor *actor) {

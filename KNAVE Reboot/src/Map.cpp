@@ -94,7 +94,7 @@ void Map::addMonster(int x, int y) {
 		// create an orc
 		Actor *orc = new Actor(x, y, 'o', "orc",
 			TCODColor::desaturatedGreen);
-		orc->destructible = new MonsterDestructible(10, 0, "dead orc", 10);
+		orc->destructible = new MonsterDestructible(10, 0, "dead orc", 50);
 		orc->attacker = new Attacker(3);
 		orc->ai = new MonsterAi();
 		engine.actors.push(orc);
@@ -103,7 +103,7 @@ void Map::addMonster(int x, int y) {
 		// create a troll
 		Actor *troll = new Actor(x, y, 'T', "troll",
 			TCODColor::darkerGreen);
-		troll->destructible = new MonsterDestructible(16, 1, "troll carcass", 50);
+		troll->destructible = new MonsterDestructible(16, 1, "troll carcass", 100);
 		troll->attacker = new Attacker(4);
 		troll->ai = new MonsterAi();
 		engine.actors.push(troll);
