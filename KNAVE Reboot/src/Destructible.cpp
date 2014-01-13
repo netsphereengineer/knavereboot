@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "main.hpp"
 
-Destructible::Destructible(float maxHp, float defense, const char *corpseName, int xp) :
-maxHp(maxHp), hp(maxHp), defense(defense), corpseName(corpseName), xp(xp) {
+Destructible::Destructible(float maxHp, float defense, const char *corpseName, int xp, int maxAp) :
+maxHp(maxHp), hp(maxHp), defense(defense), corpseName(corpseName), xp(xp), maxAp(maxAp), ap(maxAp) {
 }
 
 void Destructible::load(TCODZip &zip) {
@@ -10,6 +10,8 @@ void Destructible::load(TCODZip &zip) {
 	hp = zip.getFloat();
 	defense = zip.getFloat();
 	corpseName = _strdup(zip.getString());
+	maxAp = zip.getInt();
+	ap = zip.getInt();
 }
 
 void Destructible::save(TCODZip &zip) {
@@ -17,6 +19,8 @@ void Destructible::save(TCODZip &zip) {
 	zip.putFloat(hp);
 	zip.putFloat(defense);
 	zip.putString(corpseName);
+	zip.putInt(maxAp);
+	zip.putInt(ap);
 }
 
 float Destructible::takeDamage(Actor *owner, float damage) {
@@ -52,12 +56,12 @@ void Destructible::die(Actor *owner) {
 	engine.sendToBack(owner);
 }
 
-MonsterDestructible::MonsterDestructible(float maxHp, float defense, const char *corpseName, int xp) :
-Destructible(maxHp, defense, corpseName, xp) {
+MonsterDestructible::MonsterDestructible(float maxHp, float defense, const char *corpseName, int xp, int maxAp) :
+Destructible(maxHp, defense, corpseName, xp, maxAp) {
 }
 
-PlayerDestructible::PlayerDestructible(float maxHp, float defense, const char *corpseName) :
-Destructible(maxHp, defense, corpseName, 0) {
+PlayerDestructible::PlayerDestructible(float maxHp, float defense, const char *corpseName, int maxAp) :
+Destructible(maxHp, defense, corpseName, 0, maxAp) {
 }
 
 void MonsterDestructible::die(Actor *owner) {
@@ -88,8 +92,8 @@ Destructible *Destructible::create(TCODZip &zip) {
 	DestructibleType type = (DestructibleType)zip.getInt();
 	Destructible *destructible = NULL;
 	switch (type) {
-	case MONSTER: destructible = new MonsterDestructible(0, 0, NULL, 0); break;
-	case PLAYER: destructible = new PlayerDestructible(0, 0, NULL); break;
+	case MONSTER: destructible = new MonsterDestructible(0, 0, NULL, 0, 0); break;
+	case PLAYER: destructible = new PlayerDestructible(0, 0, NULL, 0); break;
 	}
 	destructible->load(zip);
 	return destructible;

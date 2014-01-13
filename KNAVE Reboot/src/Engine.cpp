@@ -34,6 +34,7 @@ void Engine::nextLevel() {
 
 void Engine::term() {
 	actors.clearAndDelete();
+	engine.level = 1;
 	if (map) delete map;
 	gui->clear();
 }
@@ -45,6 +46,7 @@ void Engine::save() {
 	else {
 		TCODZip zip;
 		//save the map first
+		zip.putInt(engine.level);
 		zip.putInt(map->width);
 		zip.putInt(map->height);
 		map->save(zip);
@@ -88,6 +90,7 @@ void Engine::load() {
 		engine.term();
 		zip.loadFromFile("game.sav");
 		//load from map
+		engine.level = zip.getInt();
 		int width = zip.getInt();
 		int height = zip.getInt();
 		map = new Map(width, height);
@@ -116,9 +119,8 @@ void Engine::load() {
 }
 
 void Engine::init() {
-	engine.level = 1;
 	player = new Actor(40, 25, '@', "player", TCODColor::white);
-	player->destructible = new PlayerDestructible(30, 2, "your cadaver");
+	player->destructible = new PlayerDestructible(30, 2, "your cadaver", 3);
 	player->attacker = new Attacker(5);
 	player->ai = new PlayerAi();
 	player->container = new Container(26);
@@ -200,12 +202,26 @@ void Engine::update() {
 		load();
 	}
 	player->update();
+	if (gameStatus == MID_TURN) {
+
+	}
 	if (gameStatus == NEW_TURN) {
 		for (Actor **iterator = actors.begin(); iterator != actors.end();
 			iterator++) {
 			Actor *actor = *iterator;
-			if (actor != player) {
-				actor->update();
+			if (actor != player && actor->destructible != NULL) {
+				while (actor->destructible->ap > 0) {
+					actor->update();
+					actor->destructible->ap--;
+					uint32 time = TCODSystem::getElapsedMilli();
+					uint32 endtime = time + 250;
+					engine.render();
+					TCODConsole::flush();
+					while (time < endtime && engine.map->isInFov(actor->x, actor->y) && !actor->destructible->isDead()) {
+						time = TCODSystem::getElapsedMilli();
+					}
+				}
+				actor->destructible->ap = actor->destructible->maxAp;
 			}
 		}
 	}

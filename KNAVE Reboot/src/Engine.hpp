@@ -4,6 +4,7 @@ public :
 		STARTUP,
 		IDLE,
 		NEW_TURN,
+		MID_TURN,
 		VICTORY,
 		DEFEAT
 	} gameStatus;

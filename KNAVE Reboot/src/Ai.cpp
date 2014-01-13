@@ -44,10 +44,15 @@ void PlayerAi::update(Actor *owner) {
 	default:break;
 	}
 	if (dx != 0 || dy != 0) {
-		engine.gameStatus = Engine::NEW_TURN;
+		engine.gameStatus = Engine::MID_TURN;
 		if (moveOrAttack(owner, owner->x + dx, owner->y + dy)) {
 			engine.map->computeFov();
 		}
+		owner->destructible->ap--;
+	}
+	if (owner->destructible->ap == 0) {
+		engine.gameStatus = Engine::NEW_TURN;
+		owner->destructible->ap = 3;
 	}
 }
 
@@ -55,56 +60,71 @@ void PlayerAi::handleActionKey(Actor *owner, int ascii) {
 	switch (ascii) {
 	case 'g': // pickup item
 	{
-				  bool found = false;
-				  for (Actor **iterator = engine.actors.begin();
-					  iterator != engine.actors.end(); iterator++) {
-					  Actor *actor = *iterator;
-					  if (actor->pickable && actor->x == owner->x && actor->y == owner->y) {
-						  if (actor->pickable->pick(actor, owner)) {
-							  found = true;
-							  engine.gui->message(TCODColor::lightGrey, "You pick the %s.",
-								  actor->name);
-							  break;
-						  }
-						  else if (!found) {
-							  found = true;
-							  engine.gui->message(TCODColor::red, "Your inventory is full.");
-						  }
-					  }
-				  }
-				  if (!found) {
-					  engine.gui->message(TCODColor::lightGrey, "There's nothing here that you can pick.");
-				  }
-				  engine.gameStatus = Engine::NEW_TURN;
+		bool found = false;
+		for (Actor **iterator = engine.actors.begin();
+			iterator != engine.actors.end(); iterator++) {
+			Actor *actor = *iterator;
+			if (actor->pickable && actor->x == owner->x && actor->y == owner->y) {
+				if (actor->pickable->pick(actor, owner)) {
+					found = true;
+					engine.gui->message(TCODColor::lightGrey, "You pick the %s.",
+						actor->name);
+					break;
+				}
+				else if (!found) {
+					found = true;
+					engine.gui->message(TCODColor::red, "Your inventory is full.");
+				}
+			}
+		}
+		if (!found) {
+			engine.gui->message(TCODColor::lightGrey, "There's nothing here that you can pick.");
+		}
+		engine.gameStatus = Engine::MID_TURN;
+		owner->destructible->ap--;
+		if (owner->destructible->ap == 0) {
+			engine.gameStatus = Engine::NEW_TURN;
+			owner->destructible->ap = 3;
+		}
 	}
 		break;
 	case 'i': // display inventory
 	{
-				  Actor *actor = choseFromInventory(owner);
-				  if (actor) {
-					  actor->pickable->use(actor, owner);
-					  engine.gameStatus = Engine::NEW_TURN;
-				  }
+		Actor *actor = choseFromInventory(owner);
+		if (actor) {
+			actor->pickable->use(actor, owner);
+			engine.gameStatus = Engine::MID_TURN;
+			owner->destructible->ap--;
+			if (owner->destructible->ap == 0) {
+				engine.gameStatus = Engine::NEW_TURN;
+				owner->destructible->ap = 3;
+			}
+		}
 	}
 		break;
 	case 'd': // drop item
 	{
-				  Actor *actor = choseFromInventory(owner);
-				  if (actor) {
-					  actor->pickable->drop(actor, owner);
-					  engine.gameStatus = Engine::NEW_TURN;
-				  }
+		Actor *actor = choseFromInventory(owner);
+		if (actor) {
+			actor->pickable->drop(actor, owner);
+			engine.gameStatus = Engine::MID_TURN;
+			owner->destructible->ap--;
+			if (owner->destructible->ap == 0) {
+				engine.gameStatus = Engine::NEW_TURN;
+				owner->destructible->ap = 3;
+			}
+		}
 	}
 		break;
 	case '>':
 	{
-				if (engine.stairs->x == owner->x && engine.stairs->y == owner->y) {
-					engine.nextLevel();
-				}
-				else {
-					engine.gui->message(TCODColor::lightGrey, "There are no stairs here.");
-				}
-				break;
+		if (engine.stairs->x == owner->x && engine.stairs->y == owner->y) {
+			engine.nextLevel();
+		}
+		else {
+			engine.gui->message(TCODColor::lightGrey, "There are no stairs here.");
+		}
+		break;
 	}
 	}
 }
